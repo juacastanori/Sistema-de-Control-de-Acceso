@@ -78,7 +78,7 @@ El siguiente diagrama detalla los componentes internos del microcontrolador STM3
 
 ### 0.4 Diagramas de Código
 
-TODO: Implementar Diagramas de flujo
+![Diagrama de Có](assets/code.png)
 
 
 ## Sección 1: Creación del Proyecto
