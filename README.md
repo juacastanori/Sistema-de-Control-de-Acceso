@@ -13,7 +13,8 @@ El proyecto incluye:
 
 ## Sección 0: Arquitectura del Dispositivo
 
-Esytos diagramas fueron renderizados en [Structurizr](https://www.structurizr.com/dsl) con el siguiente script: [C4Model](assets/c4model.dsl)
+Estos diagramas fueron renderizados en [Structurizr](https://www.structurizr.com/dsl) con el siguiente script: [C4Model](assets/c4model.dsl)
+
 ### 0.1 Diagrama Contextual del Sistema
 
 El siguiente diagrama contextual muestra la interacción entre el **Usuario**, el **PC**, y la **Nucleo Board**:
@@ -77,6 +78,8 @@ El siguiente diagrama detalla los componentes internos del microcontrolador STM3
 ---
 
 ### 0.4 Diagramas de Código
+
+Este diagrama fue renderizado en [Mermaid](https://mermaid.live) con el siguiente script: [flowchart.mermaid](assets/flowchart.mermaid)
 
 ![Diagrama de Có](assets/code.png)
 
