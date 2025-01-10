@@ -13,6 +13,7 @@ El proyecto incluye:
 
 ## Sección 0: Arquitectura del Dispositivo
 
+Esytos diagramas fueron renderizados en [Structurizr](https://www.structurizr.com/dsl) con el siguiente script: [C4Model](assets/c4model.dsl)
 ### 0.1 Diagrama Contextual del Sistema
 
 El siguiente diagrama contextual muestra la interacción entre el **Usuario**, el **PC**, y la **Nucleo Board**:
