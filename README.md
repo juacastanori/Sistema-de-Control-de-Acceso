@@ -11,7 +11,7 @@ El proyecto incluye:
 * Temporización usando SysTick
 
 
-## Sección 0: Arquitectura del Dispositivo
+## Sección 0: Arquitectura del Sistema
 
 Estos diagramas fueron renderizados en [Structurizr](https://www.structurizr.com/dsl) con el siguiente script: [C4Model](assets/c4model.dsl)
 
@@ -21,15 +21,6 @@ El siguiente diagrama contextual muestra la interacción entre el **Usuario**, e
 
 ![Diagrama Contextual](assets/context.png)
 
-1. **Usuario**:
-   - Envía comandos UART a través de una interfaz de terminal en el PC.
-   - Presiona el botón físico para generar eventos en el sistema.
-2. **PC**:
-   - Interactúa con el sistema mediante el puerto USB para enviar comandos y visualizar mensajes de depuración.
-3. **Nucleo Board**:
-   - Recibe comandos del PC a través de la interfaz ST-Link.
-   - Procesa entradas físicas (botón) y UART para controlar el estado del sistema.
-
 ---
 
 ### 0.2 Diagrama de Contenedores del Nucleo Board
@@ -37,16 +28,6 @@ El siguiente diagrama contextual muestra la interacción entre el **Usuario**, e
 El siguiente diagrama muestra la organización interna de la **Nucleo Board**, incluyendo los periféricos y las conexiones principales:
 
 ![Diagrama de Contenedores](assets/container.png)
-
-1. **Componentes principales**:
-   - **ST-Link**:
-     - Sirve como interfaz para depuración y comunicación UART/USB.
-   - **STM32L476RG Microcontroller**:
-     - Es el núcleo del sistema encargado de procesar entradas y manejar salidas.
-   - **Periféricos físicos**:
-     - **User Button (PC13)**: Entrada del sistema para generar eventos físicos.
-     - **LED Heartbeat (PA5)**: Indica actividad del sistema.
-     - **Door State LED (PA4)**: Muestra el estado de la puerta (bloqueado/desbloqueado).
 
 ---
 
@@ -56,39 +37,29 @@ El siguiente diagrama detalla los componentes internos del microcontrolador STM3
 
 ![Diagrama de Componentes](assets/component.png)
 
-1. **Entradas**:
-   - **User Button (PC13)**: Genera eventos capturados por el componente **Button Handler**.
-   - **ST-Link Debugger**: Convierte comandos USB en UART, procesados por el **UART Command Receiver**.
-
-2. **Microcontrolador STM32**:
-   - **Button Handler**: Captura eventos del botón y los pasa a la máquina de estados.
-   - **UART Command Receiver**: Procesa comandos UART (`Open`, `Close`) y los envía a la máquina de estados.
-   - **SysTick Timer**: Proporciona temporización basada en milisegundos para transiciones temporizadas de la máquina de estados.
-   - **State Machine**:
-     - Administra el estado del sistema: bloqueado, desbloqueo temporal, desbloqueo permanente.
-     - Genera salidas hacia los LEDs y mensajes de depuración.
-   - **UART Debug**: Envía información de depuración sobre transiciones de estado al PC.
-   - **LED Handler**: Maneja los LEDs en función del estado actual del sistema.
-
-3. **Salidas**:
-   - **LED Heartbeat (PA5)**: Indica actividad del sistema.
-   - **Door State LED (PA4)**: Representa el estado actual de la puerta.
-   - **UART Debug**: Envía mensajes al terminal del PC para proporcionar información de depuración.
-
 ---
 
 ### 0.4 Diagramas de Código
 
 Este diagrama fue renderizado en [Mermaid](https://mermaid.live) con el siguiente script: [flowchart.mermaid](assets/flowchart.mermaid)
 
-![Diagrama de Có](assets/code.png)
+1. **Inicialización:**
 
+![Flujo de Inicialización](assets/init.png)
+
+2. **Revisión de Eventos:**
+
+![Revisión de eventos](assets/events_loop.png)
+
+3. **Máquina de Estados Finitos (FSM):**
+
+![Revisión de eventos](assets/fsm_loop.png)
 
 ## Sección 1: Creación del Proyecto
 
 ### 1.1 Abrir Visual Studio Code
 
-Asegúrate de que la extensión **STM32 for VS Code** esté instalada.
+Asegúrate de que la extensión **STM32 for VS Code** esté instalada y configurada con STM32CubeCLT.
 
 ### 1.2 Crear un Proyecto Vacío
 
@@ -105,18 +76,17 @@ Asegúrate de que la extensión **STM32 for VS Code** esté instalada.
 1. Estructura inicial de archivos:
 ```
 proyecto/
-├── Inc/         # Archivos de cabecera (.h)
-├── Src/         # Archivos fuente (.c)
-├── Startup/     # Archivos de arranque
-└── cmake/       # Configuración de CMake
+├── cmake/                 # Configuración de CMake
+├── Inc/                   # Archivos de cabecera (.h)
+├── Src/                   # Archivos fuente (.c)
+├── Startup/               # Archivos de arranque
+├── CMakeLists.txt         # Configuracion del proyecto
+└── stm32l476rgtx_FLASH.ld # Configuracion de memorias
 ```
 
-2. Copia los archivos `.h` proporcionados en la carpeta `inc/`
-3. Copia los archivos `.c` en la carpeta `src/`
-
-4. Para agregar nuevos archivos fuente al proyecto:
-   * Crea tu nuevo archivo `.c` en la carpeta `src/`
-   * Crea tu nuevo archivo `.h` en la carpeta `inc/` (si es necesario)
+2. Para agregar nuevos archivos fuente al proyecto:
+   * Crea el nuevo archivo `.c` en la carpeta `Src/`
+   * Crea el nuevo archivo `.h` en la carpeta `Inc/`
    * Abre el archivo `cmake/vscode_generated.cmake`
    * Localiza la sección `sources_SRCS` y agrega tu nuevo archivo:
    ```cmake
@@ -124,15 +94,17 @@ proyecto/
        ${CMAKE_CURRENT_SOURCE_DIR}/Src/main.c
        ${CMAKE_CURRENT_SOURCE_DIR}/Src/gpio.c
        # Agrega tu nuevo archivo aquí:
-       ${CMAKE_CURRENT_SOURCE_DIR}/Src/mi_nuevo_archivo.c
+       ${CMAKE_CURRENT_SOURCE_DIR}/Src/nuevo_archivo.c
    )
    ```
 
 ### 1.4 Compilar y Depurar el Proyecto
 
+#### Compilación
+
 0. Alternativamente puedes seguir los pasos de este video para [compilar y depurar un proyecto](https://www.youtube.com/watch?v=yasF8z0BCzM).
 1. Abre la paleta de comandos (`Ctrl+Shift+P`)
-2. Selecciona **Tasks: Run Build Task** o presiona `Ctrl+Shift+B`
+2. Selecciona **Tasks: Run Build Task** o presiona `Ctrl+Shift+B`. La primer vez te pedirá selecciona `Debug`
 3. VS Code ejecutará la tarea de compilación definida en el archivo `tasks.json`
 
 También puedes usar los botones de la barra inferior de VS Code:
@@ -140,7 +112,7 @@ También puedes usar los botones de la barra inferior de VS Code:
 * 🔄 (Rebuild): Limpia y recompila todo el proyecto
 * 🗑️ (Clean): Elimina los archivos compilados
 
-#### Depuración usando VS Code
+#### Depuración
 
 1. Conecta tu placa NUCLEO-L476RG al computador vía USB
 2. En VS Code, ve a la vista de depuración (icono de insecto o `Ctrl+Shift+D`)
@@ -150,263 +122,306 @@ También puedes usar los botones de la barra inferior de VS Code:
 
 ## Sección 2: Configuración de Periféricos
 
-### Configuración de RCC (Control de Relojes)
+La configuración de cualquier periférico sigue el patrón:
+1. Habilitar Reloj
+2. Configurar registros de periférico según se requiera.
+3. Modificar los registros de entrada y salida para su uso.
 
-1. En el archivo `src/main.c`, incluye el archivo `rcc.h` para habilitar los relojes:
+### 2.1 Configuración de SysTick
 
-```c
-#include "rcc.h"
-
-void enable_clocks(void) {
-    *RCC_AHB2ENR |= (1 << 0) | (1 << 2);  // GPIOA y GPIOC
-    *RCC_APB1ENR1 |= RCC_APB1ENR1_USART2EN;  // USART2
-}
-```
-
-2. Llama a `enable_clocks()` al inicio de `main()`:
-
-```c
-int main(void) {
-    enable_clocks();
-    
-    while (1) {
-        // Código principal
-    }
-}
-```
-
-### Configuración de GPIOs
-
-1. En el archivo `gpio.c`, configura PA5 (LED) y PC13 (botón):
-
-```c
-#include "gpio.h"
-
-void configure_gpio(void) {
-    *RCC_AHB2ENR |= (1 << 0) | (1 << 2);  // Habilita GPIOA y GPIOC
-    
-    // Configura PA5 como salida
-    GPIOA->MODER &= ~(3U << (5 * 2));  // Limpia los bits
-    GPIOA->MODER |= (1U << (5 * 2));   // Modo salida
-    
-    // Configura PC13 como entrada
-    GPIOC->MODER &= ~(3U << (13 * 2));  // Limpia los bits
-}
-
-void gpio_toggle_heartbeat_led(void) {
-    GPIOA->ODR ^= (1 << 5);  // Alterna el LED
-}
-```
-
-2. Llama a `configure_gpio()` desde `main()` después de habilitar los relojes:
-
-```c
-int main(void) {
-    enable_clocks();
-    configure_gpio();
-    
-    while (1) {
-        gpio_toggle_heartbeat_led();
-    }
-}
-```
-
-### Configuración de SysTick
-
-El temporizador SysTick se utiliza para implementar temporización basada en milisegundos.
-
-1. En el archivo `systick.c`, configura el temporizador SysTick para trabajar con un reloj de 4 MHz:
+El archivo `systick.c` implementa un temporizador basado en milisegundos:
 
 ```c
 #include "systick.h"
 
-volatile uint32_t ms_counter = 0;  // Contador global de milisegundos
+volatile uint32_t ms_counter = 0;
 
-void configure_systick_and_start(void) {
-    SysTick->CTRL = 0x4;     // Desactiva SysTick para configuración
-    SysTick->LOAD = 3999;    // Configuración para 1 ms (4 MHz reloj)
-    SysTick->CTRL = 0x7;     // Activa SysTick
+void configure_systick_and_start(void)
+{
+    SysTick->CTRL = 0x4;     // Deshabilitar SysTick para configuración
+    SysTick->LOAD = 3999;    // Configuración para 1 ms (reloj de 4 MHz)  {4MHz / 4000 = 1KHz -> T = 1ms}
+    SysTick->CTRL = 0x7;     // Habilitar SysTick con interrupción
 }
 
-uint32_t systick_GetTick(void) {
-    return ms_counter;  // Devuelve el tiempo en milisegundos
+uint32_t systick_GetTick(void)
+{
+    return ms_counter;
 }
 
-void SysTick_Handler(void) {
-    ms_counter++;  // Incrementa el contador global cada 1 ms
+void SysTick_Handler(void)
+{
+    ms_counter++;
 }
 ```
 
-Llama a configure_systick_and_start() al inicio de main():
+Llama a `configure_systick_and_start()` en `main.c` para habilitar el temporizador.
+
+### 2.2 Configuración de GPIO
+
+El archivo `gpio.c` implementa la configuración para controlar el LED y el botón, además de configurar los pines para la UART y otras funciones utiles para el programa.
 
 ```c
-int main(void) {
-    enable_clocks();
-    configure_gpio();
-    configure_systick_and_start();
+#include "gpio.h"
 
-    while (1) {
-        gpio_toggle_heartbeat_led();
+void configure_gpio_for_usart(void)
+{
+    // Enable GPIOA clock
+    *RCC_AHB2ENR |= (1 << 0);
+
+    // Configure PA2 (TX) as alternate function
+    GPIOA->MODER &= ~(3U << (2 * 2)); // Clear mode bits for PA2
+    GPIOA->MODER |= (2U << (2 * 2));  // Set alternate function mode for PA2
+
+    // Configure PA3 (RX) as alternate function
+    GPIOA->MODER &= ~(3U << (3 * 2)); // Clear mode bits for PA3
+    GPIOA->MODER |= (2U << (3 * 2));  // Set alternate function mode for PA3
+
+    // Set alternate function to AF7 for PA2 and PA3
+    GPIOA->AFR[0] &= ~(0xF << (4 * 2)); // Clear AFR bits for PA2
+    GPIOA->AFR[0] |= (7U << (4 * 2));   // Set AFR to AF7 for PA2
+    GPIOA->AFR[0] &= ~(0xF << (4 * 3)); // Clear AFR bits for PA3
+    GPIOA->AFR[0] |= (7U << (4 * 3));   // Set AFR to AF7 for PA3
+
+    // Configure PA2 and PA3 as very high speed
+    GPIOA->OSPEEDR |= (3U << (2 * 2)); // Very high speed for PA2
+    GPIOA->OSPEEDR |= (3U << (3 * 2)); // Very high speed for PA3
+
+    // Configure PA2 and PA3 as no pull-up, no pull-down
+    GPIOA->PUPDR &= ~(3U << (2 * 2)); // No pull-up, no pull-down for PA2
+    GPIOA->PUPDR &= ~(3U << (3 * 2)); // No pull-up, no pull-down for PA3
+}
+
+void configure_gpio(void)
+{
+   *RCC_AHB2ENR |= (1 << 0) | (1 << 2); // Habilitar reloj para GPIOA y GPIOC
+
+    // Configurar PA5 como salida (LED)
+    GPIOA->MODER &= ~(3U << (5 * 2)); // Limpiar bits de modo
+    GPIOA->MODER |= (1U << (5 * 2));  // Configurar como salida
+
+    // Configurar PC13 como entrada (Botón)
+    GPIOC->MODER &= ~(3U << (13 * 2)); // Limpiar bits de modo
+
+    // Configurar interrupción para el botón (EXTI13)
+    *RCC_APB2ENR |= (1 << 0); // Habilitar reloj para SYSCFG
+    SYSCFG->EXTICR[3] &= ~(0xF << 4); // Limpiar bits para EXTI13
+    SYSCFG->EXTICR[3] |= (0x2 << 4);  // Mapear EXTI13 al puerto C
+    EXTI->FTSR1 |= (1 << 13);  // Configurar disparo por flanco descendente
+    EXTI->IMR1 |= (1 << 13);   // Desenmascarar la línea EXTI13
+    NVIC->ISER[1] |= (1 << 8); // Habilitar interrupción EXTI15_10
+}
+
+// Emula el comprtamiento de la puerta
+void gpio_set_door_led_state(uint8_t state) {
+    if (state) {
+        GPIOA->ODR |= (1 << 4); // encender LED estado puerta
+    } else {
+        GPIOA->ODR &= ~(1 << 4); // apagar LED estado puerta
+    }
+}
+
+void gpio_toggle_heartbeat_led(void) {
+    GPIOA->ODR ^= (1 << 5);
+}
+
+volatile uint8_t button_pressed = 0; // Flag to indicate button press
+uint8_t button_driver_get_event(void)
+{
+    uint8_t event = button_pressed;
+    button_pressed = 0;
+    return event;
+
+}
+
+uint32_t b1_tick = 0;
+void detect_button_press(void)
+{
+    if (systick_GetTick() - b1_tick < 50) {
+        return; // Ignore bounces of less than 50 ms
+    } else if (systick_GetTick() - b1_tick > 500) {
+        button_pressed = 1; // single press
+    } else {
+        button_pressed = 2; // double press
+    }
+
+    b1_tick = systick_GetTick();
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+    if (EXTI->PR1 & (1 << BUTTON_PIN)) {
+        EXTI->PR1 = (1 << BUTTON_PIN); // Clear pending bit
+        detect_button_press();
     }
 }
 ```
 
-### Configuración de UART
-La UART (USART2) es utilizada para comunicación serial con comandos externos.
+Llama a esta función en `main.c` para inicializar los GPIOs.
 
-En el archivo uart.c, inicializa la USART2:
+### 2.3 Configuración de UART
+
+El archivo `uart.c` implementa la configuración para la comunicación serial y algunas funciones para trasmisión y recepción de datos.
+
 ```c
 #include "uart.h"
 
-void usart2_init(void) {
-    // Habilita el reloj para USART2
-    *RCC_APB1ENR1 |= RCC_APB1ENR1_USART2EN;
+void usart2_init(void)
+{
+    configure_gpio_for_usart(); // Inicializar los pines para el USART2
+    *RCC_APB1ENR1 |= RCC_APB1ENR1_USART2EN; // Habilitar reloj para USART2
 
-    // Configura USART2
-    USART2->CR1 &= ~USART_CR1_UE;       // Desactiva USART
-    USART2->BRR = BAUD_9600_4MHZ;      // Configura velocidad (9600 baudios)
-    USART2->CR1 |= USART_CR1_TE | USART_CR1_RE;  // Habilita TX y RX
-    USART2->CR1 |= USART_CR1_UE;       // Activa USART
+    USART2->CR1 &= ~USART_CR1_UE; // Deshabilitar USART
+    USART2->BRR = BAUD_9600_4MHZ; // Configurar baudrate a 9600
+    USART2->CR1 |= USART_CR1_TE | USART_CR1_RE; // Habilitar transmisor y receptor
+    USART2->CR1 |= USART_CR1_UE; // Habilitar USART
+
+    // Activar interrupción de RXNE
+    USART2->CR1 |= USART_CR1_RXNEIE; 
+    NVIC->ISER[1] |= (1 << 6);
 }
-```
 
-Implementa una función para enviar datos por UART:
-
-```c
-void usart2_send_string(const char *str) {
+void usart2_send_string(const char *str)
+{
     while (*str) {
-        while (!(USART2->ISR & USART_ISR_TXE));  // Espera hasta que TX esté listo
+        while (!(USART2->ISR & USART_ISR_TXE));
         USART2->TDR = *str++;
     }
 }
-```
 
-Llama a usart2_init() en main() y envía un mensaje inicial:
+command_t usart2_get_command(void)
+{
+    command_t cmd = last_command;
+    last_command = CMD_NONE;
+    return cmd;
+}
 
-```c
-int main(void) {
-    enable_clocks();
-    configure_gpio();
-    configure_systick_and_start();
-    usart2_init();
 
-    usart2_send_string("Sistema Inicializado\r\n");
-
-    while (1) {
-        gpio_toggle_heartbeat_led();
+void USART2_IRQHandler(void)
+{
+    uint32_t isr = USART2->ISR;
+    if (isr & USART_ISR_RXNE) {
+        char command = USART2->RDR;
+        if (command == 'O') {
+            last_command = CMD_OPEN;
+        } else if (command == 'C') {
+            last_command = CMD_CLOSE;
+        }
     }
 }
 ```
 
-## Sección 3: Implementación de la Máquina de Estados
+Llama a `usart2_init()` en `main.c` para inicializar la UART y utiliza `usart2_send_string()` para enviar datos.
 
-La máquina de estados controla el estado de la puerta (bloqueado, desbloqueo temporal o desbloqueo permanente).
+### 2.4 Integración en el Código Principal
 
-### 3.1 Definición de Estados
-
-En el archivo `main.c`, define los estados y variables de control:
+En el archivo `main.c`, asegúrate de integrar las configuraciones de los periféricos:
 
 ```c
-typedef enum {
-    LOCKED,
-    TEMP_UNLOCK,
-    PERM_UNLOCK
-} DoorState_t;
+int main(void) {
+    configure_systick_and_start();
+    configure_gpio();
+    usart2_init();
 
-DoorState_t current_state = LOCKED;
-uint32_t unlock_timer = 0;
+    usart2_send_string("System Initialized\r\n");
+
+    // [...Bucle principal del programa]
+}
 ```
 
-### 3.2 Implementación de la Máquina de Estados
+## Sección 3: Explicación del Bucle Principal y la Máquina de Estados
 
-Función principal que maneja la lógica de estados:
+El bucle principal y la máquina de estados son el corazón del sistema:
+
+### 3.1 Bucle Principal
+El bucle principal está diseñado para ejecutar varias funciones críticas de manera continua:
+
+1. **Heartbeat LED:** Se activa un LED intermitente cada 500 ms para indicar que el sistema está activo y funcionando.
+2. **Eventos de Botón:** Detecta presiones de botones simples o dobles usando `button_driver_get_event()` y llama a la función `handle_event()` para procesarlos.
+3. **Comandos UART:** Procesa datos recibidos vía UART, como los comandos "O" (abrir) y "C" (cerrar), y los gestiona con `handle_event()`.
+4. **Máquina de Estados:** Administra las transiciones de estados según entradas de eventos o temporizadores mediante la función `run_state_machine()`.
+
+```c
+int main(void) {
+    // [...Inicialización del sistema]
+
+    uint32_t heartbeat_tick = 0;
+    while (1) {
+        if (systick_GetTick() - heartbeat_tick >= 500) {
+            heartbeat_tick = systick_GetTick();
+            gpio_toggle_heartbeat_led();
+        }
+
+        uint8_t button_pressed = button_driver_get_event();
+        if (button_pressed != 0) {
+            usart2_send_string("Button Pressed\r\n");
+            handle_event(button_pressed);
+            button_pressed = 0;
+        }
+
+        uint8_t rx_byte = usart2_get_command();
+        if (rx_byte != 0) {
+            usart2_send_string("Command Received\r\n");
+            handle_event(rx_byte);
+        }
+
+        run_state_machine();
+    }
+}
+```
+
+### 3.2 Máquina de Estados
+La máquina de estados se define con tres estados principales:
+
+- **LOCKED:** La puerta está cerrada y no se realiza ninguna acción periódica.
+- **TEMP_UNLOCK:** La puerta está desbloqueada temporalmente. Si el temporizador supera los 5000 ms, regresa al estado LOCKED.
+- **PERM_UNLOCK:** La puerta está desbloqueada permanentemente hasta que se reciba un comando para cerrarla.
+
+#### Implementación
+La función `run_state_machine()` supervisa los estados y transiciones:
 
 ```c
 void run_state_machine(void) {
     switch (current_state) {
         case LOCKED:
-            // Sin acción en estado bloqueado
+            // Estado cerrado: sin acción periódica
             break;
-            
         case TEMP_UNLOCK:
-            if (systick_GetTick() - unlock_timer >= 5000) { // 5 segundos
-                gpio_set_door_led_state(0); // Apaga LED
+            if (systick_GetTick() - unlock_timer >= TEMP_UNLOCK_DURATION) {
+                gpio_set_door_led_state(0); // Apagar LED de estado
                 current_state = LOCKED;
             }
             break;
-            
         case PERM_UNLOCK:
-            // Sin acción en desbloqueo permanente
+            // Estado desbloqueado permanente: sin acción periódica
             break;
     }
 }
 ```
 
-### 3.3 Manejo de Eventos
-
-Función para procesar eventos externos y cambiar estados:
+La función `handle_event()` administra las entradas, como eventos de botones o comandos UART:
 
 ```c
 void handle_event(uint8_t event) {
-    if (event == 1) {  // Pulsación simple
-        usart2_send_string("Pulsación Simple\r\n");
-        gpio_set_door_led_state(1);  // Enciende LED
+    if (event == 1) { // Presión simple
+        usart2_send_string("Presión simple\r\n");
+        gpio_set_door_led_state(1); // Encender LED
         current_state = TEMP_UNLOCK;
         unlock_timer = systick_GetTick();
-    }
-    else if (event == 2) {  // Pulsación doble
-        usart2_send_string("Pulsación Doble\r\n");
-        gpio_set_door_led_state(1);  // Enciende LED
+    } else if (event == 2) { // Presión doble
+        usart2_send_string("Presión doble\r\n");
+        gpio_set_door_led_state(1); // Encender LED
         current_state = PERM_UNLOCK;
-    }
-    else if (event == 'O') {  // Comando UART: Open
-        usart2_send_string("Comando: Abrir\r\n");
+    } else if (event == 'O') { // Comando abrir
+        usart2_send_string("Comando abrir recibido\r\n");
         gpio_set_door_led_state(1);
         current_state = TEMP_UNLOCK;
         unlock_timer = systick_GetTick();
-    }
-    else if (event == 'C') {  // Comando UART: Close
-        usart2_send_string("Comando: Cerrar\r\n");
+    } else if (event == 'C') { // Comando cerrar
+        usart2_send_string("Comando cerrar recibido\r\n");
         gpio_set_door_led_state(0);
         current_state = LOCKED;
     }
 }
 ```
 
-### 3.4 Integración en el Bucle Principal
 
-Implementación completa en la función `main()`:
-
-```c
-int main(void) {
-    enable_clocks();
-    configure_gpio();
-    configure_systick_and_start();
-    usart2_init();
-    
-    usart2_send_string("Sistema Inicializado\r\n");
-    
-    uint32_t heartbeat_tick = 0;
-    
-    while (1) {
-        if (systick_GetTick() - heartbeat_tick >= 500) {  // Latido cada 500 ms
-            heartbeat_tick = systick_GetTick();
-            gpio_toggle_heartbeat_led();
-        }
-        
-        // Simular pulsaciones de botón
-        uint8_t button_pressed = button_driver_get_event();
-        if (button_pressed != 0) {
-            handle_event(button_pressed);
-        }
-        
-        // Simular comandos UART
-        uint8_t rx_byte = usart2_get_command();
-        if (rx_byte != 0) {
-            handle_event(rx_byte);
-        }
-        
-        run_state_machine();
-    }
-}
-```
