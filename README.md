@@ -104,7 +104,7 @@ proyecto/
 
 0. Alternativamente puedes seguir los pasos de este video para [compilar y depurar un proyecto](https://www.youtube.com/watch?v=yasF8z0BCzM).
 1. Abre la paleta de comandos (`Ctrl+Shift+P`)
-2. Selecciona **Tasks: Run Build Task** o presiona `Ctrl+Shift+B`. La primer vez te pedirá selecciona `Debug`
+2. Selecciona **Tasks: Run Build Task** o presiona `Ctrl+Shift+B` y selecciona **CMAKE: Build**. *La -primera vez- te pedirá seleccionar `Debug`*
 3. VS Code ejecutará la tarea de compilación definida en el archivo `tasks.json`
 
 También puedes usar los botones de la barra inferior de VS Code:
@@ -256,7 +256,7 @@ void EXTI15_10_IRQHandler(void)
 }
 ```
 
-Llama a esta función en `main.c` para inicializar los GPIOs.
+Llama a `configure_gpio()` en `main.c` para inicializar los GPIOs.
 
 ### 2.3 Configuración de UART
 
