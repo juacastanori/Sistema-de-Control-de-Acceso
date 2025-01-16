@@ -122,6 +122,8 @@ También puedes usar los botones de la barra inferior de VS Code:
 
 ## Sección 2: Configuración de Periféricos
 
+***Nota: algunos archivos fuente se deben completar. Por favor comparar con el código propuesto para la solución del ejercicio del examen.***
+
 La configuración de cualquier periférico sigue el patrón:
 1. Habilitar Reloj
 2. Configurar registros de periférico según se requiera.
