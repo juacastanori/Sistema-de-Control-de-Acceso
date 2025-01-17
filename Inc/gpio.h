@@ -42,6 +42,7 @@ typedef struct {
 
 // Funciones para configurar GPIOs
 void configure_gpio(void);
+void init_gpio_pin(GPIO_t *GPIOx, uint8_t pin, uint8_t mode);
 
 // Control del LED de estado de la puerta (simula el estado de la puerta)
 // state = 0: LED apagado (puerta bloqueada)
@@ -54,6 +55,7 @@ void gpio_toggle_heartbeat_led(void);
 // Lectura de botones (simple/doble pulsación se maneja en otra capa)
 uint8_t button_driver_get_event(void);
 
+void detect_button_press();
 
 void configure_gpio_for_usart(void);
 

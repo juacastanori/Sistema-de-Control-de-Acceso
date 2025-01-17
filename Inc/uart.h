@@ -49,15 +49,19 @@ typedef struct {
 
 
 typedef enum {
-    CMD_NONE = 0,
-    CMD_OPEN = 'O',
-    CMD_CLOSE = 'C'
+    CMD_NONE=0,
+    CMD_OPEN='O',
+    CMD_CLOSE='C',
 } command_t;
 
 void usart2_init(void);
 void usart2_send_string(const char *str);
-
+void usart2_send_char(const char ch);
+uint8_t  usart2_receive_char();
+void usart2_receive_string(uint8_t *buffer, uint8_t len);
+void usart2_receive_it(uint8_t *buffer, uint8_t len);
 // Función para obtener el último comando recibido (no bloqueante)
 command_t usart2_get_command(void);
 
+extern uint8_t rx_byte;
 #endif // UART_H
