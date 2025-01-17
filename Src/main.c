@@ -53,11 +53,7 @@ void handle_event(uint8_t event) {
         usart2_send_string("Door Unlocked by Close Command\r\n");
         gpio_set_door_led_state(0); // Turn off door state LED
         current_state = LOCKED;
-    } else if (current_state == PERM_UNLOCK && (event==1 || event==2)) { // Turn off door unlocked by pushing the button one time
-        usart2_send_string("Single User Button press\r\n");
-        gpio_set_door_led_state(0); 
-        current_state = LOCKED;
-    }//
+    } 
 }
 
 int main(void) {
